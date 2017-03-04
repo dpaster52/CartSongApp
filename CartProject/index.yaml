@@ -1,0 +1,6 @@
+indexes:
+- kind: Song
+  ancestor: yes
+  properties:
+  - name: date
+    direction: desc
