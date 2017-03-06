@@ -47,7 +47,7 @@ class Song(ndb.Model):
     artist = ndb.StringProperty()
     album = ndb.StringProperty()
     genre = ndb.StringProperty()
-    price = ndb.StringProperty()
+    price = ndb.StringProperty(default='$0.00')
 
 class ShoppingCart(ndb.Model):
     buyer = ndb.StructuredProperty(Buyer,required=True)
@@ -223,16 +223,33 @@ class Search(webapp2.RequestHandler):
 class Cart(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
-        myCart = ShoppingCart.query(ancestor=cart_key(user.email())).fetch(1)
+
         if user:
             url = users.create_logout_url(self.request.uri)
             urlLinktext = 'Logout'
+            myCart = ShoppingCart.query(ancestor=cart_key(user.email())).fetch(1)
+            cart = myCart[0]
+            songs = myCart[0].songs
+            newSongList = []
+            for song in songs:
+                songQuery = Song.query(ancestor=genre_key(song.genre.lower())).fetch()
+                for songQ in songQuery:
+                    if songQ.name == song.name:
+                        newSongList.append(songQ)
+                        break
+            songs = newSongList
+
+
         else:
             url = users.create_login_url(self.request.uri)
             urlLinktext = 'Login'
+            cart = None
+            songs = []
+
 
         template_values = {
-            'cartSongs':myCart[0].songs,
+            'cart': cart,
+            'cartSongs':songs,
             'url': url,
             'url_linktext': urlLinktext
 
@@ -250,25 +267,21 @@ class Cart(webapp2.RequestHandler):
                 name = name.replace('add','',1)
                 songSelected = ndb.Key(urlsafe=name).get()
                 myCart[0].songs.append(songSelected)
-                if myCart[0].total == None:
-                    total = float(songSelected.price.strip('$'))
-                else:
-                    total = float(myCart[0].total.strip('$'))
-                    total += float(songSelected.price.strip('$'))
+                total = float(myCart[0].total.strip('$'))
+                total += float(songSelected.price.strip('$'))
 
             else:
                 name = name.replace('remove', '', 1)
                 songSelected = ndb.Key(urlsafe=name).get()
                 pos =0
                 for currSongs in myCart[0].songs:
-                    if currSongs == songSelected:
+                    if currSongs.name == songSelected.name:
                         break
                     pos += 1
                 del myCart[0].songs[pos]
 
-
                 total = float(myCart[0].total.strip('$'))
-                total -= float(songSelected[0].price.strip('$'))
+                total -= float(songSelected.price.strip('$'))
             myCart[0].total = '${:0,.2f}'.format(total)
 
 
