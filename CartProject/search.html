@@ -59,15 +59,21 @@
         <blockquote>No entries match that artist</blockquote>
         {% endif %}
     {% else %}
+        {% if url_linktext=='Logout' %}
+            <form action="/cart" method="post">
+                {% for song in songs %}
+                <p style="align-items: center; font-size: 200%">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}} &nbsp; &nbsp; &nbsp;&nbsp;<input size="" type="checkbox" name="song" value=add{{song.key.urlsafe()}}>
+                <br></p>
+                {% endfor %}
+                <input type="submit" class="btn btn-medium btn-primary" value="Add to Cart" >
+            </form>
+        {% else %}
         <ul style="list-style-type:none">
             {% for song in songs %}
             <li>{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}</li>
-            <form action="/" method="put">
-              <input type="checkbox" name="vehicle" value="Bike">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}<br>
-              <input type="submit" value="Submit">
-            </form>
             {% endfor %}
         </ul>
+        {% endif %}
     {% endif %}
 
 
