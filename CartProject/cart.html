@@ -1,10 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% autoescape true %}
+<html>
+    <head>
+        <!-- [START css] -->
+        <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+        <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css">
+        <!-- [END css] -->
+        <style type="text/css">
+          body {
+            padding-top: 40px;
+            padding-bottom: 40px;
+            background-color: #f5f5f5;
+          }
+          li{
+            font-size: 200%;
+            line-height: 200%;
+          }
+          blockquote {
+            margin-bottom: 10px;
+            border-left-color: #bbb;
+          }
+          form {
+            margin-top: 10px;
+          }
+          .form-signin input[type="text"] {
+            font-size: 16px;
+            height: auto;
+            margin-bottom: 15px;
+            padding: 7px 9px;
+          }
+          .row {
+            margin-left: 0px;
+            margin-top: 10px;
+            overflow: scroll;
+          }
+          .input[type='checkbox']
+          {
+              font-size: large;
+              height: auto;
+              padding: 7px 9px;
+              /*width:500px;*/
+              /*height:500px;*/
+          }
+        </style>
+        <meta charset="UTF-8">
+        <title>{{genre|safe}}</title>
+    </head>
+    <body>
+        <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">eTunes App</a>
+          <div class="nav-collapse collapse pull-right">
+            <a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <H1 align="center">Current Songs in Shopping Cart</H1>
+    <div class="container">
+        <form action="/cart" method="post">
+            {% for song in cartSongs %}
+            <p style="font-size: 200%; align-items: center">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}&nbsp; &nbsp; &nbsp; &nbsp;<input size="" type="checkbox" name="song" value=remove{{song.name}}>
+            <br></p>
+            {% endfor %}
+            <input type="submit" class="btn btn-medium btn-primary" value="Remove Selected Songs" >
+        </form>
+    </div>
+    <div class="row" align="center">
+        <button class="btn-large btn-primary" type="submit" formaction="/thankYou" formmethod="get">
+            Checkout
+        </button>
+    </div>
+    <div class="row" align="center">
+        <a href="/">Return to main Page</a>
+    </div>
 
-</body>
+    </body>
 </html>
+{% endautoescape %}

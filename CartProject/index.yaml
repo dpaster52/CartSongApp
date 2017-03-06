@@ -4,3 +4,15 @@ indexes:
   properties:
   - name: date
     direction: desc
+
+- kind: ShoppingCart
+  ancestor: yes
+  properties:
+  - name: date
+    direction: desc
+
+- kind: Purchase
+  ancestor: yes
+  properties:
+  - name: date
+    direction: desc

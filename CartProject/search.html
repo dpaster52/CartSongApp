@@ -45,9 +45,9 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="brand" href="#">eTunes App</a>
+              <a class="brand" href="/">eTunes App</a>
               <div class="nav-collapse collapse pull-right">
-                <!--<a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>-->
+                <a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>
               </div>
             </div>
           </div>
@@ -59,9 +59,15 @@
         <blockquote>No entries match that artist</blockquote>
         {% endif %}
     {% else %}
-        {% for song in songs %}
-            <blockquote>{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}</blockquote>
-        {% endfor %}
+        <ul style="list-style-type:none">
+            {% for song in songs %}
+            <li>{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}</li>
+            <form action="/" method="put">
+              <input type="checkbox" name="vehicle" value="Bike">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}<br>
+              <input type="submit" value="Submit">
+            </form>
+            {% endfor %}
+        </ul>
     {% endif %}
 
 

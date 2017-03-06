@@ -34,6 +34,12 @@
             margin-top: 10px;
             overflow: scroll;
           }
+          .input[type='checkbox']
+          {
+              font-size: large;
+              height: auto;
+              padding: 7px 9px;
+          }
         </style>
         <meta charset="UTF-8">
         <title>{{genre|safe}}</title>
@@ -47,22 +53,33 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="#">eTunes App</a>
-          <!--<div class="nav-collapse collapse pull-right">-->
-            <!--<a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>-->
-          <!--</div>-->
+          <a class="brand" href="/">eTunes App</a>
+          <div class="nav-collapse collapse pull-right">
+            <a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>
+          </div>
         </div>
       </div>
     </div>
     <H1 align="center">Current Songs in {{genre}}</H1>
     <div class="container">
+        {% if url_linktext=='Logout' %}
+        <form action="/cart" method="post">
+            {% set count = 0 %}
+            {% for song in songs %}
+            <p style="align-items: center; font-size: 200%">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}} &nbsp; &nbsp; &nbsp;&nbsp;<input size="" type="checkbox" name="song" value=add{{song.key.urlsafe()}}>
+            <br></p>
+            {% set count = count + 1 %}
+            {% endfor %}
+            <input type="submit" class="btn btn-medium btn-primary" value="Add to Cart" >
+        </form>
+        {% else %}
         <ul style="list-style-type:none">
             {% for song in songs %}
-            <li>{{song.artist}}, {{song.name}}, {{song.album}}</li>
+            <li>{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}</li>
 
             {% endfor %}
         </ul>
-
+        {% endif %}
     </div>
     <div class="row" align="center">
         <a href="/">Return to main Page</a>
