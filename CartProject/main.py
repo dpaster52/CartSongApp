@@ -16,10 +16,11 @@
 #
 import os
 import  urllib
+
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
-import  jinja2
+import jinja2
 import webapp2
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -32,37 +33,72 @@ GENRE_NAMES=["Rap","Jazz","Reggae"]
 def genre_key(genre_name=GENRE_NAMES[0]):
     return ndb.Key('Genre', genre_name)
 
+def cart_key(buyer_email=""):
+    return ndb.Key('Buyer', buyer_email)
+
+class Buyer(ndb.Model):
+    identity = ndb.StringProperty(indexed=False)
+    #email = ndb.StringProperty(indexed=True,required=True)
+    key = ndb.StringProperty(indexed=True,required=True)
+
 
 class Song(ndb.Model):
     name = ndb.StringProperty()
     artist = ndb.StringProperty()
     album = ndb.StringProperty()
     genre = ndb.StringProperty()
-    price = ndb.FloatProperty()
+    price = ndb.StringProperty()
+
+class ShoppingCart(ndb.Model):
+    buyer = ndb.StructuredProperty(Buyer,required=True)
+    songs = ndb.StructuredProperty(Song,repeated=True)
+    total = ndb.StringProperty()
 
 class Purchase(ndb.Model):
-    Identity =
-    date = ndb.DateTimeProperty()
-    songs = ndb.StructuredProperty(Song)
-
-
-class CartItem(ndb.Model):
-    Identity =
-
-
-
+    date = ndb.DateTimeProperty(auto_now_add=True)
+    cart = ndb.StructuredProperty(ShoppingCart,required=True)
 
 
 
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
-        url = self.request.uri
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            urlLinktext = 'Logout'
+            checkUser = Buyer.query().fetch()
+            newBuyer = Buyer(identity = user.user_id(),key = user.email())
+
+
+            if len(checkUser) == 0:
+               newBuyer.put()
+               newShoppingCart = ShoppingCart(parent=cart_key(newBuyer.key))
+               newShoppingCart.buyer = newBuyer
+               newShoppingCart.put()
+            else:
+                userExist = False
+                for buy in checkUser:
+                    if buy.key == newBuyer.key:
+                        userExist = True
+                        break
+                if not userExist:
+                        newBuyer.put()
+                        newShoppingCart = ShoppingCart(parent=cart_key(newBuyer.key))
+                        newShoppingCart.buyer = newBuyer
+                        newShoppingCart.put()
+
+
+
+
+        else:
+            url = users.create_login_url(self.request.uri)
+            urlLinktext = 'Login'
         template_values = {
             'genres': GENRE_NAMES,
             'genre':GENRE_NAMES[0],
             'url': url,
-            'url_linktext' : "Trial",
+            'url_linktext' : urlLinktext
 
         }
 
@@ -74,11 +110,23 @@ class Genre(webapp2.RequestHandler):
         genre_name = self.request.get('genre',GENRE_NAMES[0])
         song_query = Song.query(ancestor=genre_key(genre_name.lower()))
         songs = song_query.fetch()
+        # print songs[0].key
+        # test = songs[0].key.id()
+        # print test
         # url = self.request.uri
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            urlLinktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            urlLinktext = 'Login'
 
         template_values = {
             'genre': genre_name,
-            'songs':songs
+            'songs':songs,
+            'url': url,
+            'url_linktext': urlLinktext
 
         }
 
@@ -89,9 +137,18 @@ class Genre(webapp2.RequestHandler):
 class SongTest(webapp2.RequestHandler):
     def get(self):
         genre = self.request.get('genre',GENRE_NAMES[0])
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            urlLinktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            urlLinktext = 'Login'
 
         template_values = {
             'genre': genre,
+            'url': url,
+            'url_linktext': urlLinktext
 
         }
 
@@ -105,16 +162,24 @@ class SongTest(webapp2.RequestHandler):
         song.album = self.request.get('albumName')
         song.name = self.request.get('title')
         song.artist = self.request.get('artist')
-        song.price = self.request.get('price')
+
+        print '${:0,.2f}'.format(float(self.request.get('price')))
+
+        song.price = '${:0,.2f}'.format(float(self.request.get('price')))
+
         song.put()
-
-
-
         self.redirect('/')
 
 class Search(webapp2.RequestHandler):
     def get(self):
-        print self.request.uri
+        # print self.request.uri
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            urlLinktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            urlLinktext = 'Login'
         if 'artist' in self.request.uri:
             genre = self.request.get('genre',GENRE_NAMES[0])
             artist_name = self.request.get('artist','')
@@ -141,6 +206,8 @@ class Search(webapp2.RequestHandler):
             'genres' : GENRE_NAMES,
             'genre': genre,
             'songs':songs,
+            'url': url,
+            'url_linktext': urlLinktext
 
         }
 
@@ -155,15 +222,70 @@ class Search(webapp2.RequestHandler):
 
 class Cart(webapp2.RequestHandler):
     def get(self):
-        user = users.create_login_url(self.request.uri)
+        user = users.get_current_user()
+        myCart = ShoppingCart.query(ancestor=cart_key(user.email())).fetch(1)
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            urlLinktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            urlLinktext = 'Login'
 
-        pass
+        template_values = {
+            'cartSongs':myCart[0].songs,
+            'url': url,
+            'url_linktext': urlLinktext
+
+        }
+        template = JINJA_ENVIRONMENT.get_template('cart.html')
+        self.response.write(template.render(template_values))
+
     def post(self):
-        pass
-    def delete(self):
-        pass
-    def update(self):
-        pass
+        user = users.get_current_user()
+        songs = self.request.params.items()
+        myCart = ShoppingCart.query(ancestor=cart_key(user.email())).fetch(1)
+        for song in songs:
+            name = song[1]
+            if 'add' in name:
+                name = name.replace('add','',1)
+                songSelected = ndb.Key(urlsafe=name).get()
+                myCart[0].songs.append(songSelected)
+                if myCart[0].total == None:
+                    total = float(songSelected.price.strip('$'))
+                else:
+                    total = float(myCart[0].total.strip('$'))
+                    total += float(songSelected.price.strip('$'))
+
+            else:
+                name = name.replace('remove', '', 1)
+                songSelected = ndb.Key(urlsafe=name).get()
+                pos =0
+                for currSongs in myCart[0].songs:
+                    if currSongs == songSelected:
+                        break
+                    pos += 1
+                del myCart[0].songs[pos]
+
+
+                total = float(myCart[0].total.strip('$'))
+                total -= float(songSelected[0].price.strip('$'))
+            myCart[0].total = '${:0,.2f}'.format(total)
+
+
+        myCart[0].put()
+
+        self.redirect('/cart')
+
+class Thanks(webapp2.RequestHandler):
+    def get(self):
+        url = users.create_logout_url(self.request.uri)
+        urlLinktext = 'Logout'
+        template_values = {
+            'url': url,
+            'url_linktext': urlLinktext
+        }
+        template = JINJA_ENVIRONMENT.get_template('thankYou.html')
+        self.response.write(template.render(template_values))
 
 
 
@@ -174,4 +296,6 @@ app = webapp2.WSGIApplication([
     ('/genre',Genre),
     ('/song',SongTest),
     ('/search',Search),
+    ('/cart',Cart),
+    ('/thankYou',Thanks)
 ], debug=True)
