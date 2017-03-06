@@ -64,19 +64,26 @@
     </div>
     <H1 align="center">Current Songs in Shopping Cart</H1>
     <div class="container">
-        <form action="/cart" method="post">
-            {% for song in cartSongs %}
-            <p style="font-size: 200%; align-items: center">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}&nbsp; &nbsp; &nbsp; &nbsp;<input size="" type="checkbox" name="song" value=remove{{song.name}}>
-            <br></p>
-            {% endfor %}
-            <input type="submit" class="btn btn-medium btn-primary" value="Remove Selected Songs" >
-        </form>
+        {% if url_linktext=='Logout' %}
+            <form action="/cart" method="post">
+                {% for song in cartSongs %}
+                <p style="font-size: 200%; align-items: center">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}}&nbsp; &nbsp; &nbsp; &nbsp;<input size="" type="checkbox" name="song" value=remove{{song.key.urlsafe()}}>
+                <br></p>
+                {% endfor %}
+                <H3>Total: &nbsp; &nbsp; &nbsp; &nbsp;{{cart.total}}</H3>
+                <input type="submit" class="btn btn-medium btn-primary" value="Remove Selected Songs" >
+            </form>
+        {% else %}
+            <H2 align="center">Please Login to view Shopping Cart!!</H2>
+        {% endif %}
     </div>
-    <div class="row" align="center">
-        <button class="btn-large btn-primary" type="submit" formaction="/thankYou" formmethod="get">
-            Checkout
-        </button>
-    </div>
+    {% if url_linktext=='Logout' %}
+        <div class="row" align="center">
+            <button class="btn-large btn-primary" type="submit" formaction="/thankYou" formmethod="get">
+                Checkout
+            </button>
+        </div>
+    {% endif %}
     <div class="row" align="center">
         <a href="/">Return to main Page</a>
     </div>

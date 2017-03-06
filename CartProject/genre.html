@@ -64,11 +64,9 @@
     <div class="container">
         {% if url_linktext=='Logout' %}
         <form action="/cart" method="post">
-            {% set count = 0 %}
             {% for song in songs %}
             <p style="align-items: center; font-size: 200%">{{song.artist}}, {{song.name}}, {{song.album}}, {{song.price}} &nbsp; &nbsp; &nbsp;&nbsp;<input size="" type="checkbox" name="song" value=add{{song.key.urlsafe()}}>
             <br></p>
-            {% set count = count + 1 %}
             {% endfor %}
             <input type="submit" class="btn btn-medium btn-primary" value="Add to Cart" >
         </form>
